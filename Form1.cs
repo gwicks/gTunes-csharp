@@ -85,7 +85,7 @@ namespace gTunes
             {
                 if (selectedsong.path.Equals(""))
                 {
-                    selectedsong.path = getStreamURL("merauder75@gmail.com", "yrogerg170", selectedsong.relatedSong);
+                    selectedsong.path = getStreamURL("", "", selectedsong.relatedSong);
                     axQTControl1.URL = selectedsong.path;
                     axQTControl1.Movie.AudioVolume = slidervalue;
                     axQTControl1.Movie.Play();
@@ -241,7 +241,7 @@ namespace gTunes
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            //loadGooglePlay("merauder75@gmail.com", "yrogerg170");
+            //loadGooglePlay("", "");
             //button1.Enabled = false;
         }
 
@@ -337,7 +337,7 @@ namespace gTunes
             SongEntry selectedsong = (SongEntry)listBox1.SelectedItem;
             if (selectedsong.streamed)
             {
-                string url = getAlbumArt("merauder75@gmail.com", "yrogerg170", selectedsong.relatedSong);
+                string url = getAlbumArt("", "", selectedsong.relatedSong);
                 selectedsong.relatedSong.image = resizeImage(FromURL(url), new Size(256, 256));
                 pictureBox1.Image = selectedsong.relatedSong.image;
                 //Image img = pictureBox1.Image;
@@ -394,7 +394,7 @@ namespace gTunes
         private void button2_Click_1(object sender, EventArgs e)
         {
             //GoogleMusicAPI.API api = new GoogleMusicAPI.API();
-            api.Login("merauder75@gmail.com", "yrogerg170");
+            api.Login("", "");
             api.GetAllSongs();
 
             //Console.WriteLine("Track: " + api.trackContainer[0].Title);
@@ -504,7 +504,7 @@ namespace gTunes
             {
                 if (selectedsong.path.Equals(""))
                 {
-                    selectedsong.path = getStreamURL("merauder75@gmail.com", "yrogerg170", selectedsong.relatedSong);
+                    selectedsong.path = getStreamURL("", "", selectedsong.relatedSong);
                     axQTControl1.URL = selectedsong.path;
                     axQTControl1.Movie.AudioVolume = slidervalue;
                     axQTControl1.Movie.Play();
@@ -623,7 +623,7 @@ namespace gTunes
             {
                 if (sentry.path.Equals(""))
                 {
-                    sentry.path = getStreamURL("merauder75@gmail.com", "yrogerg170", sentry.relatedSong);
+                    sentry.path = getStreamURL("", "", sentry.relatedSong);
                     axQTControl1.URL = sentry.path;
                     axQTControl1.Movie.AudioVolume = slidervalue;
                     axQTControl1.Movie.Play();
@@ -663,7 +663,7 @@ namespace gTunes
             {
                 if (sentry.path.Equals(""))
                 {
-                    sentry.path = getStreamURL("merauder75@gmail.com", "yrogerg170", sentry.relatedSong);
+                    sentry.path = getStreamURL("", "", sentry.relatedSong);
                     axQTControl1.URL = sentry.path;
                     axQTControl1.Movie.AudioVolume = slidervalue;
                     axQTControl1.Movie.Play();

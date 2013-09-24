@@ -39,7 +39,7 @@ namespace gTunes
         {
             InitializeComponent();
             timer1.Tick += new EventHandler(clocktick);
-            
+
             ThumbnailToolBarButton infoButton = new ThumbnailToolBarButton(SystemIcons.Information, "Information");
             infoButton.Click += delegate
             {
@@ -247,6 +247,8 @@ namespace gTunes
         private void parseGooglePlay(string serverresponse)
         {
             Console.WriteLine("Server Respone: " + serverresponse);
+            List<SongEntry> masterList = new List<SongEntry>();
+
             string[] sep = { "<>" };
             string[] songs = serverresponse.Split(sep, StringSplitOptions.None);
             foreach (string song in songs)
@@ -259,8 +261,8 @@ namespace gTunes
                     tempsong.title = metadata[0];
                     tempsong.artist = metadata[1];
                     tempsong.album = metadata[2];
-                    tempsong.year = metadata[3];
-                    tempsong.genre = metadata[4];
+                    tempsong.year = metadata[4];
+                    tempsong.genre = metadata[3];
                     tempsong.image = resizeImage(tempsong.image, new Size(256, 256));
                     tempsong.id = metadata[5];
                     int duration = Int32.Parse(metadata[6]);
@@ -287,9 +289,15 @@ namespace gTunes
                 //Console.WriteLine(tsentry.title);
                 if (!tsentry.title.Equals(""))
                 {
-
-                    listBox1.Items.Add(tsentry);
+                    masterList.Add(tsentry);
+                    
                 }
+                
+            }
+            var orderedList = masterList.OrderBy(x => x.title);
+            foreach (SongEntry songitem in orderedList)
+            {
+                listBox1.Items.Add(songitem);
             }
         }
 

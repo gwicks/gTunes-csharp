@@ -14,7 +14,6 @@ using System.Drawing.Drawing2D;
 using System.Net;
 using System.Collections.Specialized;
 using System.Threading;
-using GoogleMusicAPI;
 using Microsoft.WindowsAPICodePack.Taskbar;
 
 
@@ -32,13 +31,15 @@ namespace gTunes
         int minutesprefix = 0;
         float slidervalue = 0.4f;
         SongEntry globalcurrsong = null;
-        API api = new API();
+
+        public String USER_NAME = "";
+        public String USER_PASS = "";
 
         public Form1()
         {
             InitializeComponent();
             timer1.Tick += new EventHandler(clocktick);
-            api.OnGetAllSongsComplete += GetAllSongsDone;
+            
             ThumbnailToolBarButton infoButton = new ThumbnailToolBarButton(SystemIcons.Information, "Information");
             infoButton.Click += delegate
             {
@@ -53,7 +54,7 @@ namespace gTunes
         {
 
             seconds = seconds + 1;
-            if (seconds <= progressBar1.Maximum && !globalcurrsong.streamed)
+            if (seconds <= progressBar1.Maximum)
             {
                 progressBar1.Value = seconds;
             }
@@ -226,13 +227,12 @@ namespace gTunes
                 var data = new NameValueCollection();
                 data["uname"] = username;
                 data["pass"] = password;
-                data["mode"] = "getdata";
-                data["songname"] = "Hanuman";
+                
 
-                var response = wb.UploadValues(@"http://107.20.177.55/jtunes/main.php", "POST", data);
-                string asciistring = System.Text.Encoding.ASCII.GetString(response);
-                var responsetwo = wb.UploadValues(asciistring, "POST", data);
-                string songstr = System.Text.Encoding.ASCII.GetString(responsetwo);
+                var response = wb.UploadValues(@"http://107.20.177.55/gm/list.php", "POST", data);
+                
+                string songstr = System.Text.Encoding.UTF8.GetString(response);
+                
                 Console.WriteLine(songstr);
                 parseGooglePlay(songstr);
             }
@@ -241,8 +241,7 @@ namespace gTunes
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            //loadGooglePlay("", "");
-            //button1.Enabled = false;
+            
         }
 
         private void parseGooglePlay(string serverresponse)
@@ -255,7 +254,7 @@ namespace gTunes
                 Song tempsong = new Song();
                 string[] separ = { ";" };
                 string[] metadata = song.Split(separ, StringSplitOptions.None);
-                if (metadata.Length == 5)
+                if (metadata.Length == 8)
                 {
                     tempsong.title = metadata[0];
                     tempsong.artist = metadata[1];
@@ -263,21 +262,32 @@ namespace gTunes
                     tempsong.year = metadata[3];
                     tempsong.genre = metadata[4];
                     tempsong.image = resizeImage(tempsong.image, new Size(256, 256));
+                    tempsong.id = metadata[5];
+                    int duration = Int32.Parse(metadata[6]);
+                    float nduration = duration / 1000;
+                    tempsong.duration = Convert.ToInt32(nduration);
+                    tempsong.artURL = "http:" + metadata[7];
                 }
-                else if (metadata.Length == 4)
+                else if (metadata.Length == 7)
                 {
                     tempsong.title = metadata[0];
                     tempsong.artist = metadata[1];
                     tempsong.album = metadata[2];
-                    tempsong.year = metadata[3];
-                    tempsong.genre = "Unavaialible";
+                    tempsong.year = metadata[4];
+                    tempsong.genre = metadata[3];
                     tempsong.image = resizeImage(tempsong.image, new Size(256, 256));
+                    tempsong.id = metadata[5];
+                    int duration = Int32.Parse(metadata[6]);
+                    float nduration = duration / 1000;
+                    tempsong.duration = Convert.ToInt32(nduration);
                 }
                 SongEntry tsentry = new SongEntry(tempsong.title, "");
                 tsentry.streamed = true;
                 tsentry.relatedSong = tempsong;
+                //Console.WriteLine(tsentry.title);
                 if (!tsentry.title.Equals(""))
                 {
+
                     listBox1.Items.Add(tsentry);
                 }
             }
@@ -290,13 +300,13 @@ namespace gTunes
                 var data = new NameValueCollection();
                 data["uname"] = uname;
                 data["pass"] = pass;
-                data["mode"] = "getsong";
-                data["songname"] = s.title;
+                //data["mode"] = "getsong";
+                data["id"] = s.id;
 
-                var response = wb.UploadValues(@"http://107.20.177.55/jtunes/main.php", "POST", data);
-                string asciistring = System.Text.Encoding.ASCII.GetString(response);
-                var responsetwo = wb.UploadValues(asciistring, "POST", data);
-                string songstr = System.Text.Encoding.ASCII.GetString(responsetwo);
+                var response = wb.UploadValues(@"http://107.20.177.55/gm/getstream.php", "POST", data);
+                //string asciistring = System.Text.Encoding.ASCII.GetString(response);
+                //var responsetwo = wb.UploadValues("http://107.20.177.55/gm/slist.txt", "POST", data);
+                string songstr = System.Text.Encoding.ASCII.GetString(response);
                 if (!songstr.StartsWith("http:"))
                 {
                     songstr = "http:" + songstr;
@@ -315,9 +325,9 @@ namespace gTunes
                 data["mode"] = "getart";
                 data["songname"] = s.title;
 
-                var response = wb.UploadValues(@"http://107.20.177.55/jtunes/main.php", "POST", data);
+                var response = wb.UploadValues(@"http://107.20.177.55/gm/main.php", "POST", data);
                 string asciistring = System.Text.Encoding.ASCII.GetString(response);
-                var responsetwo = wb.UploadValues(asciistring, "POST", data);
+                var responsetwo = wb.UploadValues("http://107.20.177.55/gm/slist.txt", "POST", data);
                 string songstr = System.Text.Encoding.ASCII.GetString(responsetwo);
                 if (!songstr.StartsWith("http:"))
                 {
@@ -334,16 +344,7 @@ namespace gTunes
 
         private void GetAlbumArt_Click(object sender, EventArgs e)
         {
-            SongEntry selectedsong = (SongEntry)listBox1.SelectedItem;
-            if (selectedsong.streamed)
-            {
-                string url = getAlbumArt("", "", selectedsong.relatedSong);
-                selectedsong.relatedSong.image = resizeImage(FromURL(url), new Size(256, 256));
-                pictureBox1.Image = selectedsong.relatedSong.image;
-                //Image img = pictureBox1.Image;
-                //img = resizeImage(img, new Size(256, 256));
-                //pictureBox1.Image = img;
-            }
+            
         }
 
         public static Image FromURL(string Url)
@@ -393,16 +394,7 @@ namespace gTunes
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            //GoogleMusicAPI.API api = new GoogleMusicAPI.API();
-            api.Login("", "");
-            api.GetAllSongs();
-
-            //Console.WriteLine("Track: " + api.trackContainer[0].Title);
-        }
-
-        void GetAllSongsDone(List<GoogleMusicSong> songs)
-        {
-            Console.WriteLine("Track: " + songs[0].Title);
+            
         }
 
         private void label1_Click_1(object sender, EventArgs e)
@@ -450,8 +442,10 @@ namespace gTunes
                 }
                 else
                 {
-                    Image noart = Image.FromFile("noart.png");
-                    pictureBox1.Image = resizeImage(noart, new Size(256, 256));
+                        Image noart = Image.FromFile("noart.png");
+                        pictureBox1.Image = resizeImage(noart, new Size(256, 256));
+                    
+                    
                 }
 
                 double length = tagfile.Properties.Duration.TotalSeconds;
@@ -485,6 +479,14 @@ namespace gTunes
                 label7.Text = selectedsong.relatedSong.year;
                 label6.Text = selectedsong.relatedSong.genre;
                 pictureBox1.Image = selectedsong.relatedSong.image;
+                progressBar1.Maximum = selectedsong.relatedSong.duration;
+                label12.Text = secondsToClock(selectedsong.relatedSong.duration).Substring(4);
+                if (selectedsong.relatedSong.artURL != "")
+                {
+
+                    Image art = FromURL(selectedsong.relatedSong.artURL);
+                    pictureBox1.Image = resizeImage(art, new Size(256, 256));
+                }
             }
         }
 
@@ -492,7 +494,7 @@ namespace gTunes
         {
             SongEntry selectedsong = (SongEntry)listBox1.SelectedItem;
             globalcurrsong = selectedsong;
-
+            
             if (!paused)
             {
                 minutesprefix = 0;
@@ -504,7 +506,10 @@ namespace gTunes
             {
                 if (selectedsong.path.Equals(""))
                 {
-                    selectedsong.path = getStreamURL("", "", selectedsong.relatedSong);
+                    selectedsong.path = getStreamURL(USER_NAME, USER_PASS, selectedsong.relatedSong);
+                    selectedsong.path = selectedsong.path.Substring(0, selectedsong.path.Length - 1);
+                    Console.WriteLine(selectedsong.path);
+                    
                     axQTControl1.URL = selectedsong.path;
                     axQTControl1.Movie.AudioVolume = slidervalue;
                     axQTControl1.Movie.Play();
@@ -542,6 +547,7 @@ namespace gTunes
                 searchpath = folderBrowserDialog1.SelectedPath;
                 aacmusicfiles = Directory.GetFiles(searchpath, "*.m4a", SearchOption.AllDirectories);
                 mp3musicfiles = Directory.GetFiles(searchpath, "*.mp3", SearchOption.AllDirectories);
+                List<SongEntry> masterList = new List<SongEntry>();
 
                 foreach (String musicfile in aacmusicfiles)
                 {
@@ -550,12 +556,14 @@ namespace gTunes
                     if (!tagfile.Tag.Title.Equals(""))
                     {
                         SongEntry tempentry = new SongEntry(tagfile.Tag.Title, musicfile);
-                        listBox1.Items.Add(tempentry);
+                        //listBox1.Items.Add(tempentry);
+                        masterList.Add(tempentry);
                     }
                     else
                     {
                         SongEntry tempentry = new SongEntry(getFileNameFromPath(musicfile), musicfile);
-                        listBox1.Items.Add(tempentry);
+                        //listBox1.Items.Add(tempentry);
+                        masterList.Add(tempentry);
                     }
                     
                 }
@@ -566,13 +574,20 @@ namespace gTunes
                     if (tagfile.Tag.Title != null)
                     {
                         SongEntry tempentry = new SongEntry(tagfile.Tag.Title, musicfile);
-                        listBox1.Items.Add(tempentry);
+                        //listBox1.Items.Add(tempentry);
+                        masterList.Add(tempentry);
                     }
                     else
                     {
                         SongEntry tempentry = new SongEntry(getFileNameFromPath(musicfile), musicfile);
-                        listBox1.Items.Add(tempentry);
+                        //listBox1.Items.Add(tempentry);
+                        masterList.Add(tempentry);
                     }
+                }
+                var sortedList = masterList.OrderBy(x => x.title);
+                foreach (SongEntry songitem in sortedList)
+                {
+                    listBox1.Items.Add(songitem);
                 }
             }
         }
@@ -681,6 +696,13 @@ namespace gTunes
                 axQTControl1.Movie.AudioVolume = slidervalue;
                 axQTControl1.Movie.Play();
             }
+        }
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            LoginForm lf = new LoginForm();
+            lf.parent = this;
+            lf.Show();
         }
     }
 

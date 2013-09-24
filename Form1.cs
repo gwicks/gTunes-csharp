@@ -35,6 +35,8 @@ namespace gTunes
         public String USER_NAME = "";
         public String USER_PASS = "";
 
+        public static String MIDDLEMAN_SERVER = "http://107.20.177.55/gm/";
+
         public Form1()
         {
             InitializeComponent();
@@ -229,7 +231,7 @@ namespace gTunes
                 data["pass"] = password;
                 
 
-                var response = wb.UploadValues(@"http://107.20.177.55/gm/list.php", "POST", data);
+                var response = wb.UploadValues(MIDDLEMAN_SERVER + "list.php", "POST", data);
                 
                 string songstr = System.Text.Encoding.UTF8.GetString(response);
                 
@@ -308,12 +310,11 @@ namespace gTunes
                 var data = new NameValueCollection();
                 data["uname"] = uname;
                 data["pass"] = pass;
-                //data["mode"] = "getsong";
+                
                 data["id"] = s.id;
 
-                var response = wb.UploadValues(@"http://107.20.177.55/gm/getstream.php", "POST", data);
-                //string asciistring = System.Text.Encoding.ASCII.GetString(response);
-                //var responsetwo = wb.UploadValues("http://107.20.177.55/gm/slist.txt", "POST", data);
+                var response = wb.UploadValues(MIDDLEMAN_SERVER + "getstream.php", "POST", data);
+                
                 string songstr = System.Text.Encoding.ASCII.GetString(response);
                 if (!songstr.StartsWith("http:"))
                 {
@@ -323,27 +324,7 @@ namespace gTunes
             }
         }
 
-        private string getAlbumArt(string uname, string pass, Song s)
-        {
-            using (var wb = new WebClient())
-            {
-                var data = new NameValueCollection();
-                data["uname"] = uname;
-                data["pass"] = pass;
-                data["mode"] = "getart";
-                data["songname"] = s.title;
-
-                var response = wb.UploadValues(@"http://107.20.177.55/gm/main.php", "POST", data);
-                string asciistring = System.Text.Encoding.ASCII.GetString(response);
-                var responsetwo = wb.UploadValues("http://107.20.177.55/gm/slist.txt", "POST", data);
-                string songstr = System.Text.Encoding.ASCII.GetString(responsetwo);
-                if (!songstr.StartsWith("http:"))
-                {
-                    songstr = "http:" + songstr;
-                }
-                return songstr;
-            }
-        }
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -412,9 +393,15 @@ namespace gTunes
 
         private void listBox1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            TagLib.File tagfile = null;
+            
             SongEntry selectedsong = (SongEntry)listBox1.SelectedItem;
             globalcurrsong = selectedsong;
+            
+        }
+
+        private void updateInfo(SongEntry selectedsong)
+        {
+            TagLib.File tagfile = null;
             if (!selectedsong.streamed)
             {
                 tagfile = TagLib.File.Create(selectedsong.path);
@@ -450,10 +437,10 @@ namespace gTunes
                 }
                 else
                 {
-                        Image noart = Image.FromFile("noart.png");
-                        pictureBox1.Image = resizeImage(noart, new Size(256, 256));
-                    
-                    
+                    Image noart = Image.FromFile("noart.png");
+                    pictureBox1.Image = resizeImage(noart, new Size(256, 256));
+
+
                 }
 
                 double length = tagfile.Properties.Duration.TotalSeconds;
@@ -502,7 +489,7 @@ namespace gTunes
         {
             SongEntry selectedsong = (SongEntry)listBox1.SelectedItem;
             globalcurrsong = selectedsong;
-            
+            updateInfo(globalcurrsong);
             if (!paused)
             {
                 minutesprefix = 0;

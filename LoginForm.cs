@@ -33,6 +33,7 @@ namespace gTunes
             parent.USER_NAME = uname;
             parent.USER_PASS = pass;
 
+            label3.Text = "Loading...";
             parent.loadGooglePlay(uname, pass);
             this.Close();
         }

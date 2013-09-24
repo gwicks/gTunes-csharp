@@ -616,6 +616,7 @@ namespace gTunes
         {
             timer1.Stop();
             axQTControl1.Movie.Stop();
+
             if (listBox1.SelectedIndex == listBox1.Items.Count - 1)
             {
                 listBox1.SelectedIndex = 0;
@@ -626,6 +627,7 @@ namespace gTunes
                 listBox1.SelectedIndex = listBox1.SelectedIndex + 1;
             }
             SongEntry sentry = (SongEntry)listBox1.SelectedItem;
+            updateInfo(sentry);
             minutesprefix = 0;
             seconds = 0;
             timer1.Start();
@@ -666,6 +668,7 @@ namespace gTunes
                 listBox1.SelectedIndex = listBox1.SelectedIndex - 1;
             }
             SongEntry sentry = (SongEntry)listBox1.SelectedItem;
+            updateInfo(sentry);
             minutesprefix = 0;
             seconds = 0;
             timer1.Start();
